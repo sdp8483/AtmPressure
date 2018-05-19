@@ -36,6 +36,12 @@ clone this repository to ```/home/pi/```
  git clone https://github.com/sdp8483/AtmPressure
  ```
  
+ Matplotlib for Python 2 will have to be installed. Using the terminal on the Pi install Matplotlib using the following command:
+ ``` 
+ sudo apt-get install python-matplotlib 
+ ```
+ It should also be possible to use pip if you want to.
+ 
  to start the python script on boot edit ```/etc/rc.local``` by adding the following line before ```exit 0```
  ```
  python /home/pi/AtmPressure/AtmosphericPressureRecorder.py &
