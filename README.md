@@ -42,6 +42,12 @@ clone this repository to ```/home/pi/```
  ```
  It should also be possible to use pip if you want to.
  
+ To disable the display going black I have found the easiest option is to install xscreensaver
+ ```
+ sudo apt-get install xscreensaver
+ ```
+ after installing on the RPI desktop got the the raspberry start icon -> preference -> screensaver and select disable screen saver.
+ 
  to start the python script on boot edit ```/etc/rc.local``` by adding the following line before ```exit 0```
  ```
  python /home/pi/AtmPressure/AtmosphericPressureRecorder.py &
