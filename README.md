@@ -27,3 +27,19 @@ hdmi_mode=87
 hdmi_cvt=800 480 60 6 0 0 0
 ```
 Source: https://www.jeffgeerling.com/blog/2016/review-elecrow-hdmi-5-800x480-tft-display-xpt2046-touch-controller
+
+## The Software
+clone this repository to ```/home/pi/```
+ 
+ ```
+ cd /home/pi
+ git clone https://github.com/sdp8483/AtmPressure
+ ```
+ 
+ to start the python script on boot edit ```/etc/rc.local``` by adding the following line before ```exit 0```
+ ```
+ python /home/pi/AtmPressure/AtmosphericPressureRecorder.py &
+ ```
+ 
+ **Dont forget the ```&``` or your pi will not boot**
+ See: https://www.raspberrypi.org/documentation/linux/usage/rc-local.md for more info
