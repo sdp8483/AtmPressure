@@ -76,3 +76,5 @@ clone this repository to `/home/pi/`
  
  reboot the raspberry pi to enable all changes and to start the script
  it may look ugly at first but give it minute to catch up
+ 
+ For a case I used this from Thingiverse: https://www.thingiverse.com/thing:1698162
