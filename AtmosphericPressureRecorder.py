@@ -1,18 +1,30 @@
 #!/usr/bin/python
-# Atmospheric Pressure Chart Recorder and Live Display
-#  using LPS25HB connected to i2c
+# Atmospheric Pressure Chart Recorder and Live Display using LPS25HB connected to i2c
 
-# ===LIBRARIES TO IMPORT===
+i2c_avalible = False    # if not using the Raspi, need to emulate i2c bus for testing purposes
+
 import csv
-#import random
+import numpy as np
+if i2c_avalible:
+    import smbus  # dont import if we are testing not on a raspi
+
 import time
-import smbus  # @UnresolvedImport
 import matplotlib.pyplot as plt
 import matplotlib.dates as dts
 import matplotlib.animation as animation
 from datetime import datetime
 import matplotlib as mpl
 mpl.rcParams['toolbar'] = 'None' #remove toolbar from figure display
+
+def lps25hb_setup():
+    bus = smbus.SMBus(1)
+    # address is 0x5C, write to CTRL_REG1(0x20), Set active mode, continuous update at 1Hz (0x90)
+    bus.write_byte_data(0x5C, 0x20, 0x90)
+
+def lps25hb_read():
+    # read pressure from register 0x28 with command 0x80 3 bytes of data, LSB
+    raw_data = bus.read_i2c_block_data(0x5C, 0x28 | 0x80, 3)
+    return ((data[2]* 65536 + data[1] * 256 + data[0]) / 4096.0) # convert to hPa
 
 # ===USER SETTINGS AND VARIABLES===
 sampleSize = 1440
@@ -26,15 +38,15 @@ timeFmt = dts.DateFormatter('%H:%M')
 # read in CSV file that pressure data is stored into
 
 ''' NUL Check '''
-with open('/home/pi/AtmPressure/PressureData.csv', 'rb') as data_fileA:
+with open('PressureData.csv', 'rb') as data_fileA:
     data_contents = data_fileA.read()
 
 ''' check for NUL bytes '''
-with open('/home/pi/AtmPressure/PressureData.csv', 'wb') as data_fileB:
+with open('PressureData.csv', 'wb') as data_fileB:
     data_fileB.write(data_contents.replace('\x00', ''))
 
 PressureHistory = []
-with open('/home/pi/AtmPressure/PressureData.csv', 'rb') as csvfile:
+with open('PressureData.csv', 'rb') as csvfile:
     data = csv.reader(csvfile, delimiter=',')
     for row in data:
         PressureHistory.append(row)
@@ -51,10 +63,7 @@ if len(PressureHistory) > 0:
             pass
            
 # ===LPS25HB SETUP AND INITIALIZATION===
-bus = smbus.SMBus(1)
-# LPS25HB address is 0x5C
-# Write to CTRL_REG1(0x20), Set active mode, continuse update at 1Hz (0x90)
-bus.write_byte_data(0x5C, 0x20, 0x90)
+
 time.sleep(0.1)
 
 fig = plt.figure('Atmospheric Pressure', figsize=(5,3), dpi=190)
@@ -62,15 +71,19 @@ ax1 = fig.add_subplot(1,1,1)
 #ax1.ticklabel_format(useOffset=False)
 
 def animate(i):
-    # ===READ PRESSURE===
-    # read pressure from register 0x28 with command 0x80 3 bytes of data, LSB
-    data = bus.read_i2c_block_data(0x5C, 0x28 | 0x80, 3)
+    if i2c_avalible:
+        # read pressure
+        data = lps25hb_read()
+    else:
+        # make shit up if i2c is not available
+        data = np.random.randint(900, 1020)
+        
     timePts.append(dts.date2num(datetime.now()))
-    pressurePts.append((data[2]* 65536 + data[1] * 256 + data[0]) / 4096.0)
+    pressurePts.append(data)
     print str(datetime.now()) + ' ' + str(pressurePts[-1])
     
     # ===APPEND DATA TO CSV===
-    with open('/home/pi/AtmPressure/PressureData.csv', 'ab') as csvfile:
+    with open('PressureData.csv', 'ab') as csvfile:
         rowappend = csv.writer(csvfile, delimiter=',')
         rowappend.writerow([timePts[-1], pressurePts[-1]])
 
