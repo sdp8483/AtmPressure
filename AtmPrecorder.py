@@ -6,6 +6,7 @@ Created on May 21, 2018
 i2c_avalible = False                            # if not running on raspberry pi then set to false for testing
 new_data = True                                 # gloabal varable to detrmin if a new df should be created
 display_yesterday = True                        # global varable to set display of yesterdays pressure recording
+fake_pastdata = True
 
 import pandas as pd
 import datetime
@@ -50,6 +51,17 @@ fig = plt.figure('Atmospheric Pressure',        # name that will appear on the w
                  figsize=(5,3),                 # figure size in inches
                  dpi=190)                       # figure resolution to fit nicely on 5" display, may look ugly on other displays
 ax1 = fig.add_subplot(1,1,1)
+
+''' fake past data for testing '''
+if fake_pastdata:
+    import numpy as np
+    dt_array = [datetime.datetime(2018, 5, 20, 0, 0) + datetime.timedelta(minutes=x) for x in range(0, 1440)]
+    pi2 = np.linspace(-2*np.pi, 2*np.pi, num=1440)
+    a = [34*np.sin(p)+994.0 for p in pi2]
+    df = pd.DataFrame({'datetime': dt_array,
+                       'atm_pressure_hpa': a})
+    
+    df.to_hdf('PressureData-{}.h5'.format(datetime.date.today() - datetime.timedelta(days=1)), key='df')
 
 def ani(i):                                     # @UnusedVariable
     global new_data                             # import global variables
