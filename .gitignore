@@ -2,3 +2,4 @@
 *.ipynb
 .project
 .pydevproject
+*.h5

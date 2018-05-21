@@ -5,6 +5,7 @@ Created on May 21, 2018
 '''
 i2c_avalible = False                            # if not running on raspberry pi then set to false for testing
 new_data = True                                 # gloabal varable to detrmin if a new df should be created
+display_yesterday = True                        # global varable to set display of yesterdays pressure recording
 
 import pandas as pd
 import datetime
@@ -53,6 +54,7 @@ ax1 = fig.add_subplot(1,1,1)
 def ani(i):                                     # @UnusedVariable
     global new_data                             # import global variables
     global i2c_avalible
+    global display_yesterday
     
     if new_data:                                # have we collected data before?
         ani.df = pd.DataFrame({'datetime':[],   # create empty dataframe to append to
@@ -60,9 +62,16 @@ def ani(i):                                     # @UnusedVariable
         ani.todays_date = datetime.date.today()
         ani.tomorrows_date = ani.todays_date + datetime.timedelta(days=1)
         new_data = False
+        
+        if display_yesterday:
+            try:
+                ani.df_past = pd.read_hdf('PressureData-{}.h5'.format(ani.todays_date - datetime.timedelta(days=1)),
+                                          key='df')
+            except IOError:
+                print "No past data!"
     elif datetime.date.today() > ani.todays_date:
         ''' save data every day to new file '''
-        ani.df.to_hdf('PressureData-{}.df'.format(ani.todays_date), key='df')
+        ani.df.to_hdf('PressureData-{}.h5'.format(ani.todays_date), key='df')
         del ani.df
         new_data = True
     else:
@@ -81,8 +90,16 @@ def ani(i):                                     # @UnusedVariable
         
         ''' Plotting '''
         ax1.clear()
+        
+        if display_yesterday:
+            try:
+                ax1.plot(ani.df_past['datetime'] + datetime.timedelta(days=1), ani.df_past['atm_pressure_hpa'], color='gray')
+            except Exception as e: 
+                print(e)
+                
         ax1.plot(ani.df['datetime'], ani.df['atm_pressure_hpa'])
         ax = plt.gca()
+        
         ax.get_yaxis().get_major_formatter().set_useOffset(False)
         
         ''' Set the xaxis range from today midnight to tomorrow midnight '''
@@ -140,6 +157,3 @@ def ani(i):                                     # @UnusedVariable
 
 ani = animation.FuncAnimation(fig, ani, interval=60000)  # plot every 60 seconds
 plt.show()
-        
-        
-        
