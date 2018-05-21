@@ -93,7 +93,9 @@ def ani(i):                                     # @UnusedVariable
         
         if display_yesterday:
             try:
-                ax1.plot(ani.df_past['datetime'] + datetime.timedelta(days=1), ani.df_past['atm_pressure_hpa'], color='gray')
+                ax1.plot(ani.df_past['datetime'] + datetime.timedelta(days=1), ani.df_past['atm_pressure_hpa'],
+                         color='gray',
+                         linewidth=0.5)
             except Exception as e: 
                 print(e)
                 
