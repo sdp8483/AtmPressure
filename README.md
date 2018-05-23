@@ -54,7 +54,7 @@ clone this repository to `/home/pi/`
  ```
  and add this line to the startup script
  ```
- @unclutter -idle 0
+ @unclutter -idle 5
  ```
  source: https://jackbarber.co.uk/blog/2017-02-16-hide-raspberry-pi-mouse-cursor-in-raspbian-kiosk
  
