@@ -65,7 +65,7 @@ clone this repository to `/home/pi/`
  ```
  cd /home/pi/AtmPressure
  chmod +x launcher.sh
- chmod +x AtmposphericPressureRecorder.py
+ chmod +x AtmPrecorder.py
  
  sudo nano /etc/profile
  ```
