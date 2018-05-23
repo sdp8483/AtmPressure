@@ -2,3 +2,7 @@
 *.ipynb
 .project
 .pydevproject
+<<<<<<< HEAD
+=======
+*.h5
+>>>>>>> update2018
