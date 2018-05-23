@@ -153,7 +153,7 @@ def ani(i):                                     # @UnusedVariable
         date_str = '{}/{:02d}/{}'.format(ani.df['datetime'].iloc[-1].month, ani.df['datetime'].iloc[-1].day, ani.df['datetime'].iloc[-1].year)
         time_str = '{}:{:02d}'.format(ani.df['datetime'].iloc[-1].hour, ani.df['datetime'].iloc[-1].minute)
         
-        ax1.text(0.99, 0.94,
+        ax1.text(0.99, 0.92,
                  date_str,
                  transform=ax1.transAxes,
                  fontsize=6,
@@ -161,7 +161,7 @@ def ani(i):                                     # @UnusedVariable
                  verticalalignment='top',
                  horizontalalignment='right')
         
-        ax1.text(0.99, 0.91,
+        ax1.text(0.99, 0.89,
                  time_str,
                  transform=ax1.transAxes,
                  fontsize=6,
