@@ -161,7 +161,7 @@ def ani(i):                                     # @UnusedVariable
                  verticalalignment='top',
                  horizontalalignment='right')
         
-        ax1.text(0.99, 0.89,
+        ax1.text(0.99, 0.88,
                  time_str,
                  transform=ax1.transAxes,
                  fontsize=6,
