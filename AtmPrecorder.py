@@ -28,6 +28,7 @@ def lps25hb_setup():
                                                 # Set active mode, continuous update at 1Hz (0x90)
 
 def lps25hb_read():
+    bus = smbus.SMBus(1)
     raw_data = bus.read_i2c_block_data(0x5C,    # @UndefinedVariable
                                        0x28 | 0x80,
                                        3)       # read pressure from register 0x28 with command 0x80 3 bytes of data, LSB
