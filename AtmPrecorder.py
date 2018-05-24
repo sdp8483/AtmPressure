@@ -3,7 +3,7 @@ Created on May 21, 2018
 
 @author: samper
 '''
-i2c_avalible = False                            # if not running on raspberry pi then set to false for testing
+i2c_avalible = True                            # if not running on raspberry pi then set to false for testing
 new_data = True                                 # global variable to determine if a new df should be created
 display_yesterday = True                        # global variable to set display of yesterdays pressure recording
 fake_pastdata = False                           # global variable to determin if on first run to generate fake data
