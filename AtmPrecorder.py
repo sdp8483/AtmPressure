@@ -3,10 +3,14 @@ Created on May 21, 2018
 
 @author: samper
 '''
-i2c_avalible = True                            # if not running on raspberry pi then set to false for testing
-new_data = True                                 # global variable to determine if a new df should be created
+''' user settings '''
+i2c_avalible = True                             # if not running on raspberry pi then set to false for testing
 display_yesterday = True                        # global variable to set display of yesterdays pressure recording
-fake_pastdata = False                           # global variable to determin if on first run to generate fake data
+fake_pastdata = True                            # global variable to determine if on first run to generate fake data
+save_rate = 10 # minutes                        # global variable to set rate at which data will be saved to disk
+
+''' not a user setting '''
+new_data = True                                 # global variable to determine if a new df should be created
 
 import pandas as pd
 import datetime
@@ -36,16 +40,17 @@ def lps25hb_read():
              + raw_data[1] * 256 
              + raw_data[0]) / 4096.0)           # convert to hPa
 
-''' LPS25HB Setup and Initilation '''
+''' LPS25HB Setup and Initialization '''
 if i2c_avalible:
     lps25hb_setup()
 else:
     print "Testing mode, data will be randomly generated"
+    print "set i2c_avalible to True to use actual sensor"
 
 ''' Matplotlib Settings '''
 style.use('dark_background')                    # change the style of the plot to one of the predefined styles
-two_hours = dts.HourLocator(interval=2)         # for major locater
-one_hour = dts.HourLocator()                    # for minor locater
+two_hours = dts.HourLocator(interval=2)         # major locater
+one_hour = dts.HourLocator()                    # minor locater
 timeFmt = dts.DateFormatter('%H:%M')            # time format of the x-axis
 
 fig = plt.figure('Atmospheric Pressure',        # name that will appear on the window title bar
@@ -53,21 +58,32 @@ fig = plt.figure('Atmospheric Pressure',        # name that will appear on the w
                  dpi=190)                       # figure resolution to fit nicely on 5" display, may look ugly on other displays
 ax1 = fig.add_subplot(1,1,1)
 
-''' fake past data for testing '''
+''' fake past data for testing or first time run'''
 if fake_pastdata:
-    import numpy as np
-    dt_array = [datetime.datetime(2018, 5, 20, 0, 0) + datetime.timedelta(minutes=x) for x in range(0, 1440)]
-    pi2 = np.linspace(-2*np.pi, 2*np.pi, num=1440)
-    a = [34*np.sin(p)+994.0 for p in pi2]
-    df = pd.DataFrame({'datetime': dt_array,
-                       'atm_pressure_hpa': a})
+    import os.path
+    yd = datetime.date.today() - datetime.timedelta(days=1) # yesterday, all my troubles seemed so far away
     
-    df.to_hdf('PressureData-{}.h5'.format(datetime.date.today() - datetime.timedelta(days=1)), key='df')
+    if (os.path.isfile('PressureData-{}.h5'.format(yd))):   # don't write fake data if there is real data!
+        print "past data exits, may be real! Skipping generation of fake data"
+    else:
+        import numpy as np
+        dt_array = [datetime.datetime(yd.year, yd.month, yd.day, 0, 0) + datetime.timedelta(minutes=x) for x in range(0, 1440)]
+        pi2 = np.linspace(-2*np.pi, 2*np.pi, num=1440)
+        a = [34*np.sin(p)+994.0 for p in pi2]
+        df = pd.DataFrame({'datetime': dt_array,
+                           'atm_pressure_hpa': a})
+        
+        df.to_hdf('PressureData-{}.h5'.format(yd), key='df')
+        
+        del df                                  # free up memory
+    
+    del yd
 
 def ani(i):                                     # @UnusedVariable
     global new_data                             # import global variables
     global i2c_avalible
     global display_yesterday
+    global save_rate
     
     if new_data:                                # have we collected data before?
         ani.df = pd.DataFrame({'datetime':[],   # create empty dataframe to append to
@@ -82,11 +98,21 @@ def ani(i):                                     # @UnusedVariable
                                           key='df')
             except IOError:
                 print "No past data!"
+        
+        ''' see if there is data from today, ie recover from restart '''
+        try:
+            ani.df = pd.read_hdf('PressureData-{}.h5'.format(ani.todays_date), key='df')
+        except IOError:
+            print "No back up data!"
+        
+        ani.last_save = datetime.datetime.now() # to determine when to save backup to disk
+        
     elif datetime.date.today() > ani.todays_date:
         ''' save data every day to new file '''
-        ani.df.to_hdf('PressureData-{}.h5'.format(ani.todays_date), key='df')
-        del ani.df
+        ani.df.to_hdf('PressureData-{}.h5'.format(ani.todays_date), key='df', mode='w') # save to new file, delete any file with same name
+        del ani.df, ani.df_past
         new_data = True
+        
     else:
         ''' get new data '''
         if i2c_avalible:                        # get data from pressure sensor
@@ -100,6 +126,12 @@ def ani(i):                                     # @UnusedVariable
         
         ''' Print to console for debugging stuff '''
         print "{}, {:.2f} hpa".format(ani.df['datetime'].iloc[-1], ani.df['atm_pressure_hpa'].iloc[-1])
+        
+        ''' is it time to save a backup to disk? '''
+        if (datetime.datetime.now() >= (ani.last_save + datetime.timedelta(minutes=save_rate))):
+            ani.last_save = datetime.datetime.now()
+            ani.df.to_hdf('PressureData-{}.h5'.format(ani.todays_date), key='df', mode='w') # save to new file, delete any file with same name
+            print "backup saved"
         
         ''' Plotting '''
         ax1.clear()
